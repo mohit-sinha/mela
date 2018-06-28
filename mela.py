@@ -5,7 +5,7 @@ class MelaClassifier():
 
 	def __init__(self):
 		self.var = None
-		self.weights = None
+		
 
 	def preprocess(self, data):
 
@@ -15,11 +15,11 @@ class MelaClassifier():
 				data[i] = data[i].fillna(x[int(np.random.rand()+0.25)])
 				
 
-	def probsOf(self, feat, target, train, low, up):
+	def probsOf(self, feat, train, target):
 		data = pd.DataFrame()
 		data = train.groupby(by=feat)[target].mean()
 		for i in data:
-			if i > low and i < up:
+			if i > self.low and i < self.up:
 				i = 0.5
 		return data
 
@@ -29,7 +29,7 @@ class MelaClassifier():
 		self.target = target
 		train_x = train.drop(target, axis=1)
 		self.var = train_x.columns
-		self.weights = np.ones(self.var.size)		
+			
 		self.train_x = train_x
 
 		return self
@@ -45,8 +45,8 @@ class MelaClassifier():
 		for idx,feat in enumerate(X_test.columns):
 			pred += X_test[feat].values*self.weights[idx]
 		pred/=sum(self.weights)
-		x = np.random.rand(pred.shape[0])
-		x/=100
-		pred+=x
+		noise = np.random.rand(pred.shape[0])
+		noise/=100
+		pred+=noise
 
 		return pred
