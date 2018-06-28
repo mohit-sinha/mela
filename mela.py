@@ -1,18 +1,23 @@
 import pandas as pd
 import numpy as np
+from sklearn.base import BaseEstimator, TransformerMixin
 
-class MelaClassifier():
+	class MelaClassifier(BaseEstimator):
 
-	def __init__(self):
+	def __init__(self, weights, low, up):
 		self.var = None
-		
+		self.low = low
+		self.up = up
+		self.weights = np.array(weights)
+    
 
 	def preprocess(self, data):
-
+    
 		for i in data.columns:
 			if data[i].isnull().values().any:
 				x = data[i].value_counts().keys()				
 				data[i] = data[i].fillna(x[int(np.random.rand()+0.25)])
+
 				
 
 	def probsOf(self, feat, train, target):
@@ -23,16 +28,19 @@ class MelaClassifier():
 				i = 0.5
 		return data
 
+
 	def fit(self, train, target):
 		self.train = train
 		train = self.preprocess(train)
 		self.target = target
 		train_x = train.drop(target, axis=1)
 		self.var = train_x.columns
-			
+		if self.var.size > self.weights.size:
+			self.weights = np.r_[self.weights, np.zeros(self.var.size-self.weights.size)]
 		self.train_x = train_x
 
 		return self
+
 
 	def predict(self, test_x):
 		test_x = self.preprocess(test_x)
