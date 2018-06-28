@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
-	class MelaClassifier(BaseEstimator):
+class MelaClassifier(BaseEstimator):
 
 	def __init__(self, weights, low, up):
 		self.var = None
