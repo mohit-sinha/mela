@@ -9,6 +9,15 @@ from sklearn.base import BaseEstimator, TransformerMixin
 		self.low = low
 		self.up = up
 		self.weights = np.array(weights)
+    
+
+	def preprocess(self, data):
+    
+		for i in data.columns:
+			if data[i].isnull().values().any:
+				x = data[i].value_counts().keys()				
+				data[i] = data[i].fillna(x[int(np.random.rand()+0.25)])
+
 				
 
 	def probsOf(self, feat, train, target):
@@ -22,6 +31,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 	def fit(self, train, target):
 		self.train = train
+		train = self.preprocess(train)
 		self.target = target
 		train_x = train.drop(target, axis=1)
 		self.var = train_x.columns
@@ -33,7 +43,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 
 	def predict(self, test_x):
-
+		test_x = self.preprocess(test_x)
 		X_test = test_x[self.var].copy()
 		for feat in self.var:		
 			X_test[feat] = test_x[feat].map(self.probsOf(feat, self.target, self.train, 0.45, 0.85))
