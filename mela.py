@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
-	class MelaClassifier(BaseEstimator):
+class MelaClassifier(BaseEstimator):
 
 	def __init__(self, weights, low, up):
 		self.var = None
@@ -46,7 +46,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 		test_x = self.preprocess(test_x)
 		X_test = test_x[self.var].copy()
 		for feat in self.var:		
-			X_test[feat] = test_x[feat].map(self.probsOf(feat, self.target, self.train, 0.45, 0.85))
+			X_test[feat] = test_x[feat].map(self.probsOf(feat, self.train, self.target))
 		X_test.fillna(0.5, inplace=True)
 
 		pred = np.zeros(X_test.shape[0])
