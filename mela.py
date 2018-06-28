@@ -51,4 +51,5 @@ class MelaClassifier():
 		x = np.random.rand(pred.shape[0])
 		x/=100
 		pred+=x
-		return pre
+
+		return pred
