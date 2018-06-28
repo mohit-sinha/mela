@@ -12,20 +12,19 @@ class MelaClassifier(BaseEstimator):
     
 
 	def preprocess(self, data):
-    
+		data = pd.DataFrame(data)
 		for i in data.columns:
-			if data[i].isnull().values().any:
+			if data[i].isnull().values.any:
 				x = data[i].value_counts().keys()				
 				data[i] = data[i].fillna(x[int(np.random.rand()+0.25)])
-
+		return data
 				
 
 	def probsOf(self, feat, train, target):
-		data = pd.DataFrame()
 		data = train.groupby(by=feat)[target].mean()
-		for i in data:
-			if i > self.low and i < self.up:
-				i = 0.5
+		for i in data.index:
+			if data[i] > self.low and data[i] < self.up:
+				data.loc[i] = 0.5
 		return data
 
 
@@ -45,8 +44,9 @@ class MelaClassifier(BaseEstimator):
 	def predict(self, test_x):
 		test_x = self.preprocess(test_x)
 		X_test = test_x[self.var].copy()
-		for feat in self.var:		
+		for feat in self.var:
 			X_test[feat] = test_x[feat].map(self.probsOf(feat, self.train, self.target))
+
 		X_test.fillna(0.5, inplace=True)
 
 		pred = np.zeros(X_test.shape[0])
