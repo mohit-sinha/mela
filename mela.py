@@ -21,7 +21,7 @@ class MelaClassifier(BaseEstimator):
 				
 
 	def probsOf(self, feat, train, target):
-		data = train.group_by(by=feat)[target].mean()
+		data = train.groupby(by=feat)[target].mean()
 		for i in data.index:
 			if data[i] > self.low_lim and data[i] < self.up_lim:
 				data.loc[i] = 0.5
