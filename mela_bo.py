@@ -1,58 +1,58 @@
-jhgcimport pandas as pd;
-import numpy as np;
-import seaborn as sns;
-import lightgbm as lgb
-from sklearn.preprocessing import LabelEncoder
+import pandas as pd
+import numpy as np
+import mela.mela as mela
 from bayes_opt import BayesianOptimization
-from sklearn.model_selection import cross_val_score
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import train_test_split
 
-def lgb_evaluate(
-                learning_rate,
-                num_leaves,
-                min_split_gain,
-                max_depth,
-                subsample,
-                subsample_freq,
-                lambda_l1,
-                lambda_l2,
-                feature_fraction,
-                ):
 
-    clf = lgb.LGBMClassifier(num_leaves              = int(num_leaves),
-                             max_depth               = int(max_depth),
-                             learning_rate           = 10**learning_rate,
-                             n_estimators            = 500,
-                             min_split_gain          = min_split_gain,
-                             subsample               = subsample,
-                             colsample_bytree        = feature_fraction,
-                             reg_alpha               = 10**lambda_l1,
-                             reg_lambda              = 10**lambda_l2,
-                             subsample_freq          = int(subsample_freq),
-                             verbose                 = -1
-                            )
-
-    global X
-    global Y
+def mela_evaluate(w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15, low, up):
     
-    scores = cross_val_score(clf, X, Y, cv=5, scoring='roc_auc')
-    print(np.mean(scores))
+    w = [w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15]
+    
+    clf = mela.MelaClassifier(w, low, up)  
+    target = 'is_pass'
+    X = train.drop(target, axis=1)
+    y = train[target]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+    X_train[target] = y_train
+    clf.fit(X_train, target)
+    y_pred = clf.predict(X_test)
+    score = roc_auc_score(y_test, y_pred)
+    
+    return score
 
-    return np.mean(scores)
    
-def bayesOpt(train_x, train_y):
-    lgbBO = BayesianOptimization(lgb_evaluate, {                                            
-                                            'learning_rate':           (-2, 0),
-                                            'num_leaves':              (5, 50),
-                                            'min_split_gain':          (0, 1),
-                                            'max_depth':               (5, 30),
-                                            'subsample':               (0.1, 1),
-                                            'subsample_freq':          (0, 100),
-                                            'lambda_l1':               (-2, 2),
-                                            'lambda_l2':               (-2, 2),
-                                            'feature_fraction':        (0.1, 1)
-                                            })
+def bayesOpt():
+    
+    ranges = {                                                
+                'w1':  (0.8, 2.5),
+                'w2': (0.8, 2.5),
+                'w3': (0.8, 2.5),
+                'w4': (0.8, 2.5),
+                'w5': (0.8, 2.5),                                       
+                'w6': (0.8, 2.5),
+                'w7':  (0.8, 2.5),
+                'w8': (0.8, 2.5),
+                'w9': (0.8, 2.5),
+                'w10': (0.8, 2.5),
+                'w11': (0.8, 2.5),                                       
+                'w12': (0.8, 2.5),
+                'w13':  (0.8, 2.5),
+                'w14': (0.8, 2.5),
+                'w15': (0.8, 2.5),
+                'low': (0.2, 0.45),
+                'up': (0.75, 0.9)
+            }
+    
+    melaBO = BayesianOptimization(mela_evaluate, ranges)
 
 
-    lgbBO.maximize(init_points=5, n_iter=5)
+    melaBO.maximize(init_points=50, n_iter=5, kappa = 2, acq = "ei", xi = 0.0)
 
-    print(lgbBO.res['max'])
+    bestAUC = round((-1.0 * melaBO.res['max']['max_val']), 6)
+    print("\n Best AUC found: %f" % bestAUC)
+    print("\n Parameters: %s" % melaBO.res['max']['max_params'])
+    
+
+bayesOpt()
