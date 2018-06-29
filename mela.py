@@ -1,60 +1,58 @@
 import pandas as pd
 import numpy as np
-from sklearn.base import BaseEstimator
+import mela.mela as mela
+from bayes_opt import BayesianOptimization
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import train_test_split
 
-class MelaClassifier(BaseEstimator):
 
-	def __init__(self, weights, low_lim, up_lim):
-		self.var = None
-		self.low_lim = low_lim
-		self.up_lim = up_lim
-		self.weights = np.array(weights)
+def mela_evaluate(w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15, low, up):
+    
+    w = [w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15]
+    
+    clf = mela.MelaClassifier(w, low, up)  
+    target = 'is_pass'
+    X = train.drop(target, axis=1)
+    y = train[target]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+    X_train[target] = y_train
+    clf.fit(X_train, target)
+    y_pred = clf.predict(X_test)
+    score = roc_auc_score(y_test, y_pred)
+    
+    return score
+
+   
+def bayesOpt():
+    
+    ranges = {                                                
+                'w1':  (0.8, 2.5),
+                'w2': (0.8, 2.5),
+                'w3': (0.8, 2.5),
+                'w4': (0.8, 2.5),
+                'w5': (0.8, 2.5),                                       
+                'w6': (0.8, 2.5),
+                'w7':  (0.8, 2.5),
+                'w8': (0.8, 2.5),
+                'w9': (0.8, 2.5),
+                'w10': (0.8, 2.5),
+                'w11': (0.8, 2.5),                                       
+                'w12': (0.8, 2.5),
+                'w13':  (0.8, 2.5),
+                'w14': (0.8, 2.5),
+                'w15': (0.8, 2.5),
+                'low': (0.2, 0.45),
+                'up': (0.75, 0.9)
+            }
+    
+    melaBO = BayesianOptimization(mela_evaluate, ranges)
+
+
+    melaBO.maximize(init_points=50, n_iter=5, kappa = 2, acq = "ei", xi = 0.0)
+
+    bestAUC = round((-1.0 * melaBO.res['max']['max_val']), 6)
+    print("\n Best AUC found: %f" % bestAUC)
+    print("\n Parameters: %s" % melaBO.res['max']['max_params'])
     
 
-	def preprocess(self, data):
-		data = pd.DataFrame(data)
-		for i in data.columns:
-			if data[i].isnull().values.any:
-				modes = data[i].value_counts().keys()				
-				data[i] = data[i].fillna(modes[int(np.random.rand()+0.25)])
-		return data
-				
-
-	def probsOf(self, feat, train, target):
-		data = train.groupby(by=feat)[target].mean()
-		for i in data.index:
-			if data[i] > self.low_lim and data[i] < self.up_lim:
-				data.loc[i] = 0.5
-		return data
-
-
-	def fit(self, train, target):
-		self.train = train
-		train = self.preprocess(train)
-		self.target = target
-		train_x = train.drop(target, axis=1)
-		self.var = train_x.columns
-		if self.var.size > self.weights.size:
-			self.weights = np.r_[self.weights, np.zeros(self.var.size-self.weights.size)]
-		self.train_x = train_x
-
-		return self
-
-
-	def predict(self, test_x):
-		test_x = self.preprocess(test_x)
-		X_test = test_x[self.var].copy()
-		for feat in self.var:
-			X_test[feat] = test_x[feat].map(self.probsOf(feat, self.train, self.target))
-
-		X_test.fillna(0.5, inplace=True)
-
-		pred = np.zeros(X_test.shape[0])
-		for idx,feat in enumerate(X_test.columns):
-			pred += X_test[feat].values*self.weights[idx]
-		pred/=sum(self.weights)
-		noise = np.random.rand(pred.shape[0])
-		noise/=100
-		pred+=noise
-
-		return pred
+bayesOpt()
