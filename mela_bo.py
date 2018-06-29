@@ -2,17 +2,26 @@ import pandas as pd
 import numpy as np
 import mela.mela as mela
 from bayes_opt import BayesianOptimization
-from sklearn.model_selection import cross_val_score
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import train_test_split
+
 
 def mela_evaluate(w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15, low, up):
     
     w = [w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15]
     
-    clf = mela.MelaClassifier(w, low, up)    
-    scores = cross_val_score(clf, train_x, train_y, cv=5, scoring='roc_auc')
-    print(np.mean(scores))
+    clf = mela.MelaClassifier(w, low, up)  
+    target = 'is_pass'
+    X = train.drop(target, axis=1)
+    y = train[target]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+    X_train[target] = y_train
+    clf.fit(X_train, target)
+    y_pred = clf.predict(X_test)
+    score = roc_auc_score(y_test, y_pred)
+    
+    return score
 
-    return np.mean(scores)
    
 def bayesOpt():
     
