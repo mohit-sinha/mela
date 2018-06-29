@@ -64,4 +64,4 @@ class MelaClassifier(BaseEstimator):
         noise/=100
         pred+=noise
 
-return pred
+        return pred
