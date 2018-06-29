@@ -1,13 +1,13 @@
 import pandas as pd
 import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator
 
 class MelaClassifier(BaseEstimator):
 
-	def __init__(self, weights, low, up):
+	def __init__(self, weights, low_lim, up_lim):
 		self.var = None
-		self.low = low
-		self.up = up
+		self.low_lim = low_lim
+		self.up_lim = up_lim
 		self.weights = np.array(weights)
     
 
@@ -15,15 +15,15 @@ class MelaClassifier(BaseEstimator):
 		data = pd.DataFrame(data)
 		for i in data.columns:
 			if data[i].isnull().values.any:
-				x = data[i].value_counts().keys()				
-				data[i] = data[i].fillna(x[int(np.random.rand()+0.25)])
+				modes = data[i].value_counts().keys()				
+				data[i] = data[i].fillna(modes[int(np.random.rand()+0.25)])
 		return data
 				
 
 	def probsOf(self, feat, train, target):
-		data = train.groupby(by=feat)[target].mean()
+		data = train.group_by(by=feat)[target].mean()
 		for i in data.index:
-			if data[i] > self.low and data[i] < self.up:
+			if data[i] > self.low_lim and data[i] < self.up_lim:
 				data.loc[i] = 0.5
 		return data
 
