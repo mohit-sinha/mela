@@ -7,6 +7,7 @@ def modified_fillna(arr, fillers):
     filler = np.random.choice(fillers, ser.size)
     return np.where(ser.isnull(), filler, ser.values)
 
+
 class MelaClassifier(BaseEstimator):
 
     def __init__(self, weights, low_lim, up_lim):
@@ -15,6 +16,7 @@ class MelaClassifier(BaseEstimator):
         self.up_lim = up_lim
         self.weights = np.array(weights)
     
+
 
     def preprocess(self, data):
         data = pd.DataFrame(data)
