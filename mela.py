@@ -2,6 +2,11 @@ import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator
 
+def modified_fillna(arr, fillers):
+	ser = pd.Series(arr)
+	filler = np.random.choice(fillers, ser.size)
+	return np.where(ser.isnull(), filler, ser.values)
+
 class MelaClassifier(BaseEstimator):
 
 	def __init__(self, weights, low_lim, up_lim):
@@ -16,7 +21,7 @@ class MelaClassifier(BaseEstimator):
 		for i in data.columns:
 			if data[i].isnull().values.any:
 				modes = data[i].value_counts().keys()				
-				data[i] = data[i].fillna(modes[int(np.random.rand()+0.25)])
+				data[i] = modified_fillna(data[i], modes)
 		return data
 				
 
